@@ -104,4 +104,5 @@ Valor de la funcion (Fitness global) = -1.031628366
 |Rojo | SSE |
 |Azul | SAE |
 |Verde | MAE|
+
 ![Gráfico de errores del voltaje](images/voltaje.png)
