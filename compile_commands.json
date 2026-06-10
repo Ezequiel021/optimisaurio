@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/ramos/Documents/ComPar/P03/Proyecto/build",
+  "command": "/usr/bin/c++    -o CMakeFiles/opti.dir/src/opti.cpp.o -c /home/ramos/Documents/ComPar/P03/Proyecto/src/opti.cpp",
+  "file": "/home/ramos/Documents/ComPar/P03/Proyecto/src/opti.cpp",
+  "output": "CMakeFiles/opti.dir/src/opti.cpp.o"
+}
+]
