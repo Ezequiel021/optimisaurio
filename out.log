@@ -1,0 +1,8 @@
+La isla ganadora fue el proceso [2] de 6
+Coordenadas del optimo global:
+x[0] = 0.5 (Límites: [0, 0.5])
+x[1] = 0.107011 (Límites: [0, 0.2])
+x[2] = 0.40877 (Límites: [0, 1])
+x[3] = 0.182998 (Límites: [0, 1.14])
+x[4] = 27.2871 (Límites: [0, 29.5])
+Valor de la funcion (Fitness global) = 0.01088412677

@@ -18,17 +18,16 @@ inline double voltage(const std::vector<double> &x, double i)
     return x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
 }
 
-// Función a minimizar: MAE
+// Función a minimizar: SSE
 inline double function(const std::vector<double> &x)
 {
     const int m = vfc.size();
-    std::vector<double> v(m);
+    double sum = 0.0;
     for (int i = 0; i < m; i++)
     {
-        v[i] = std::abs(vfc[i].second - voltage(x, vfc[i].first));
+        sum += pow(std::abs(vfc[i].second - voltage(x, vfc[i].first)), 2.0);
     }
-    std::sort(v.begin(), v.end());
-    return m % 2 == 0 ? (v[m / 2] + v[m / 2 - 1]) / 2.0 : v[m / 2];
+    return sum;
 }
 
 // Estructura auxiliar para ordenar la población por fitness

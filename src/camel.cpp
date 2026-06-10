@@ -1,7 +1,5 @@
 #include <algorithm>
 #include <cmath>
-#include <cstdlib>
-#include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -10,25 +8,11 @@
 #include <utility>
 #include <vector>
 
-// Datos experimentales
-std::vector<std::pair<double, double>> vfc;
-
-inline double voltage(const std::vector<double> &x, double i)
-{
-    return x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
-}
-
-// Función a minimizar: MAE
+// Función a minimizar: Six hum camel back
 inline double function(const std::vector<double> &x)
 {
-    const int m = vfc.size();
-    std::vector<double> v(m);
-    for (int i = 0; i < m; i++)
-    {
-        v[i] = std::abs(vfc[i].second - voltage(x, vfc[i].first));
-    }
-    std::sort(v.begin(), v.end());
-    return m % 2 == 0 ? (v[m / 2] + v[m / 2 - 1]) / 2.0 : v[m / 2];
+    return (4.0 - 2.1 * x[0] * x[0] + 0.5 * pow(x[0], 4.0)) * pow(x[0], 2.0) + x[0] * x[1] +
+           4 * (x[1] * x[1] - 1) * x[1] * x[1];
 }
 
 // Estructura auxiliar para ordenar la población por fitness
@@ -47,9 +31,9 @@ int optimize_island(int &solution_generation, std::vector<double> &solution, int
     std::mt19937 rng(rd() + rank);
 
     const int population = 100;
-    const int epochs = 50;
-    const int generations_per_epoch = 300;
-    const int mutation_chance = 2;
+    const int epochs = 10;
+    const int generations_per_epoch = 100;
+    const int mutation_chance = 100;
     const int tournament_size = 3;
     const int num_migrants = 5;
 
@@ -61,6 +45,7 @@ int optimize_island(int &solution_generation, std::vector<double> &solution, int
     std::vector<std::vector<double>> gen(population, std::vector<double>(dimensions));
     std::vector<std::vector<double>> new_gen(population, std::vector<double>(dimensions));
 
+    // 1. Inicialización adaptada a los límites de cada dimensión
     for (int i = 0; i < population; i++)
     {
         for (int d = 0; d < dimensions; d++)
@@ -175,56 +160,12 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    // Leer de datos_358.txt
-    // Variables auxiliares para el Broadcast
-    int num_datos = 0;
-    std::vector<double> flat_vfc;
-
-    if (rank == 0)
-    {
-        std::ifstream data("datos_358.txt");
-        if (!data.is_open())
-        {
-            std::cerr << "Error al abrir el archivo en el rank 0.\n";
-            MPI_Abort(MPI_COMM_WORLD, -1);
-        }
-
-        double dat_i, dat_vi;
-        while (data >> dat_i >> dat_vi)
-        {
-            vfc.push_back({dat_i, dat_vi});
-            flat_vfc.push_back(dat_i);
-            flat_vfc.push_back(dat_vi);
-        }
-        num_datos = vfc.size();
-    }
-
-    MPI_Bcast(&num_datos, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    if (rank != 0)
-    {
-        flat_vfc.resize(num_datos * 2);
-    }
-
-    MPI_Bcast(flat_vfc.data(), num_datos * 2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    if (rank != 0)
-    {
-        for (int i = 0; i < num_datos; i++)
-        {
-            vfc.push_back({flat_vfc[i * 2], flat_vfc[i * 2 + 1]});
-        }
-    }
-
     int generation;
-    const int dimensions = 5;
+    const int dimensions = 2;
 
     std::vector<std::pair<double, double>> bounds(dimensions);
-    bounds[0] = {0.0, 0.5};
-    bounds[1] = {0.0, 0.2};
-    bounds[2] = {0.0, 1.0};
-    bounds[3] = {0.0, 1.14};
-    bounds[4] = {0.0, 29.5};
+    bounds[0] = {-10.0, 10.0};
+    bounds[1] = {-5.0, 5.0};
 
     std::vector<double> local_best_solution;
 
@@ -246,15 +187,14 @@ int main(int argc, char **argv)
 
     if (rank == 0)
     {
-        std::ofstream output("out.log");
-        output << "La isla ganadora fue el proceso [" << global_min.rank << "] de " << size << "\n";
-        output << "Coordenadas del optimo global:\n";
+        std::cout << "La isla ganadora fue el proceso [" << global_min.rank << "]\n";
+        std::cout << "Coordenadas del optimo global:\n";
         for (int d = 0; d < dimensions; d++)
         {
-            output << "x[" << d << "] = " << std::setprecision(6) << global_best_solution[d] << " (Límites: ["
+            std::cout << "x[" << d << "] = " << std::setprecision(6) << global_best_solution[d] << " (Límites: ["
                       << bounds[d].first << ", " << bounds[d].second << "])\n";
         }
-        output << "Valor de la funcion (Fitness global) = " << std::setprecision(10) << global_min.val << "\n";
+        std::cout << "Valor de la funcion (Fitness global) = " << std::setprecision(10) << global_min.val << "\n";
     }
 
     MPI_Finalize();
