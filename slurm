@@ -8,7 +8,7 @@
 #              el número de procesos a utilizar, y el nombre del ejecutable.
 
 # Grupo en el que se va a ejecutar
-#SBATCH --partition=C1
+#SBATCH --partition=C1Mitad1
 
 # Nombre del trabajo. Puede cambiarlo 
 # para identificarlo de forma más sencilla
@@ -22,7 +22,7 @@
 #teniendo en cuenta a todos los nodos). En este ejemplo
 #se usarían 6 nodos tipo C2, y en cada uno de los nodos se usarían
 #24 procesos, para el total de 144.
-#SBATCH --ntasks=20
+#SBATCH --ntasks=100
 
 # archivo de log donde quedará lo que imprima su software por pantalla. 
 #Lo recomendable es que el programa no imprima nada a pantalla, sino a fichero directamente
