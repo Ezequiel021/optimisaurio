@@ -8,7 +8,6 @@
 #include <iostream>
 #include <mpi.h>
 #include <random>
-#include <ratio>
 #include <utility>
 #include <vector>
 
@@ -17,7 +16,7 @@ std::vector<std::pair<double, double>> vfc;
 
 inline double voltage(const std::vector<double> &x, double i)
 {
-    return x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
+    return x[0] - x[1] * log(i) - x[2] * i + x[3] * log(1 - x[4] * i);
 }
 
 // Función a minimizar: MAE
@@ -287,6 +286,9 @@ int main(int argc, char **argv)
         }
         output << "Valor de la funcion = " << std::setprecision(10) << global_min.val << "\n";
         output << "Tiempo de ejecución: " << runtime.count() << "\n";
+
+        // para pegar en R: x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
+        output << global_best_solution[0] << " - " << global_best_solution[1] << " * log(i) - " << global_best_solution[2] << " * i + " << global_best_solution[3] << " * log(1 - " << global_best_solution[4] << " * i)";
     }
 
     MPI_Finalize();

@@ -1,4 +1,4 @@
-data <- read.csv("~/Documents/ComPar/P03/Proyecto/datos_358.csv")
+data <- read.csv("~/Projects/ComPar/optimisaurio/datos_358.csv")
 
 sse <- function(i)
 {
@@ -12,7 +12,7 @@ sae <- function(i)
 
 mae <- function(i)
 {
-  return (0.460381 - 0.110310 * log(i) - i * 0.548958 + 0.134323 * log(1 - 28.5105 * i))  
+  return (0.3164392263 - 0.07807540317 * log(i) - 0.1333365113 * i + 0.1292480823 * log(1 - 27.61024852 * i))  
 }
 
 plot(x = data$corriente, y = data$voltaje, type = "l", ylim = c(0, 1.0))
