@@ -26,7 +26,7 @@
 
 # archivo de log donde quedará lo que imprima su software por pantalla. 
 #Lo recomendable es que el programa no imprima nada a pantalla, sino a fichero directamente
-#SBATCH --output=result_Hello.log 
+#SBATCH --output=result_opti.log 
 
 #mem especifica la cantidad máxima de memoria que podrá utilizar en cada nodo. 
 #El valor 0 indica que podrá utilizar toda la memoria.
@@ -42,6 +42,6 @@
 # En la línea siguiente cambie la ruta, el nombre del ejecutable MPI 
 # (debe compilar con mpic++.openmpi, mpicc.openmpi o mpifort.openmpi) e incluya
 # al final los parametros de su ejecutable si procede 
-mpirun.openmpi -np ${SLURM_NTASKS} HelloWorld 
+mpirun.openmpi -np ${SLURM_NTASKS} build/opti
 
 # Para enviarlo en la bash escriba sbatch nombreDeEsteFichero 
