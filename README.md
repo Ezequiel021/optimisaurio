@@ -64,38 +64,60 @@ sbatch slurm
 La salida producirá un archivo out.log que contiene los parámetros óptimos encontrados.
 
 ## Pruebas
-El programa fue probado localmente con poblaciones de 4000 individuos (1000 por isla) y 4 procesos (islas), así como en el clúster de Cimat con poblaciones de 10000 (100 por isla) y 100 procesos.
+El programa fue probado localmente con poblaciones de 4000 individuos (1000 por isla) y 6 procesos (islas), así como en el clúster de Cimat con poblaciones de 10000 (100 por isla) y 100 procesos.
 
 ### Función senoidal
 ```
+La isla ganadora fue el proceso [5] de 6
 Coordenadas del optimo global:
-x[0] = -2.64135e-19
-x[1] = 1.51741e-20
-Valor de la funcion (Fitness global) = 0.1
+x[0] = -5.04063e-06 (Límites: [-2, 2])
+x[1] = -5.48774e-06 (Límites: [-2, 2])
+Valor de la funcion = 0.1001117709
+Tiempo de ejecución: 236
 ```
 ### Función de Michaelwics
 ```
+La isla ganadora fue el proceso [4] de 6
 Coordenadas del optimo global:
-x[0] = 2.20291
-x[1] = 1.5708
-Valor de la funcion (Fitness global) = -1.80130341
+x[0] = 2.20287 (Límites: [0, 4])
+x[1] = 1.57079 (Límites: [0, 4])
+Valor de la funcion = -1.801303385
+Tiempo de ejecución: 623
 ```
 
 ### Función de Rosenbrock
 ```
+La isla ganadora fue el proceso [5] de 6
 Coordenadas del optimo global:
-x[0] = 1
-x[1] = 1
-Valor de la funcion (Fitness global) = 0
+x[0] = 1.00001 (Límites: [0, 4])
+x[1] = 1.00001 (Límites: [0, 4])
+Valor de la funcion = 4.819189912e-10
+Tiempo de ejecución: 93
 ```
 
 ### Función Six-hum camel back
 ```
+La isla ganadora fue el proceso [4] de 6
 Coordenadas del optimo global:
-x[0] = 0.0898413 (Límites: [-3, 3])
-x[1] = -0.712656 (Límites: [-2, 2])
-Valor de la funcion (Fitness global) = -1.031628366
+x[0] = 0.0898533 (Límites: [-3, 3])
+x[1] = -0.712653 (Límites: [-2, 2])
+Valor de la funcion = -1.031628365
+Tiempo de ejecución: 326
 ```
+### Tiempo de ejecución
+|Color| Función de error optimizada|
+|---|---|
+|Negro| Datos experimentales |
+|Rojo | Six-hum camel back |
+|Azul | Sinoidal |
+|Verde | Rosenbrock |
+|Naranja | Michaelwicz|
+
+![Gráfico de errores del voltaje](images/tiempos.png)
+
+### Speedup relativo
+![Gráfico de errores del voltaje](images/speedup.png)
+
 
 ### Función de error
 |Color| Función de error optimizada|

@@ -1,10 +1,10 @@
-La isla ganadora fue el proceso [2] de 4
+La isla ganadora fue el proceso [1] de 6
 Coordenadas del optimo global:
-x[0] = 0.465637 (Límites: [0, 0.5])
-x[1] = 0.100933 (Límites: [0, 0.2])
-x[2] = 0.127089 (Límites: [0, 1])
-x[3] = 0.138064 (Límites: [0, 1.14])
-x[4] = 28.5257 (Límites: [0, 29.5])
-Valor de la funcion = 0.2205116359
-Tiempo de ejecución: 5003 ms
-0.4656365445 - 0.1009326054 * log(i) - 0.1270891372 * i + 0.1380636506 * log(1 - 28.52570359 * i)
+x[0] = 0.291056 (Límites: [0, 0.5])
+x[1] = 0.189492 (Límites: [0, 0.2])
+x[2] = 0.938543 (Límites: [0, 1])
+x[3] = 0.0847492 (Límites: [0, 1.14])
+x[4] = 29.3945 (Límites: [0, 29.5])
+Valor de la funcion = 0.01807696799
+Tiempo de ejecución: 1879 ms
+0.2910555734 - 0.1894919856 * log(i) - 0.9385430162 * i + 0.08474919473 * log(1 - 29.39452502 * i)

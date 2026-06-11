@@ -6,6 +6,7 @@
 #include <iostream>
 #include <mpi.h>
 #include <random>
+#include <sstream>
 #include <vector>
 
 #include "objective2d.h"
@@ -150,6 +151,12 @@ int main(int argc, char **argv)
     // ====== SETUP ======
     MPI_Init(&argc, &argv);
 
+    if (argc != 3)
+    {
+        std::cerr << "Argumentos inválidos. Uso <opti> <parametros.cfg> <archivo_de_salida>\n";
+        MPI_Abort(MPI_COMM_WORLD, -1);
+    }
+
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -157,15 +164,12 @@ int main(int argc, char **argv)
     int generation;
     const int dimensions = 2;
 
-    std::vector<std::pair<double, double>> bounds(dimensions);
-    bounds[0] = {-2.0, 2.0};
-    bounds[1] = {-2.0, 2.0};
+    std::vector<double> bounds_flat(dimensions * 2);
 
-
-    std::vector<int> parameters(6);
+    std::vector<int> parameters(7);
     if (rank == 0)
     {
-        std::ifstream param("parameters.cfg");
+        std::ifstream param(argv[1]);
         if (! param.is_open())
         {
             std::cerr << "Fallo al abrir el archivo 'parameters.cfg'";
@@ -173,16 +177,32 @@ int main(int argc, char **argv)
         }
 
         std::string dummy;
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 7; i++)
         {
             param >> dummy >> parameters[i];
+        }
+
+        double l, r;
+        for (int i = 0; i < parameters[6]; i++)
+        {
+            param >> l >> r;
+            bounds_flat[i] = l;
+            bounds_flat[dimensions + i] = r;
         }
 
         // Distribuir la población total equitativamente entre las islas
         parameters[0] /= size;
     }
 
+    MPI_Bcast(bounds_flat.data(), dimensions * 2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    std::vector<std::pair<double, double>> bounds(dimensions);
+    for (int i = 0; i < dimensions; i++)
+    {
+        bounds[i] = {bounds_flat[i], bounds_flat[dimensions + i]};
+    }
+    
     MPI_Bcast(parameters.data(), 6, MPI_INT, 0, MPI_COMM_WORLD);    
+ 
     std::vector<double> local_best_solution;
 
     // ====== EJECUCIÓN ======
@@ -210,7 +230,10 @@ int main(int argc, char **argv)
     {
         auto runtime = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
         
-        std::ofstream output("out.log");
+        std::string s("output/");
+        s += std::string(argv[2]);
+        std::ofstream output(s);
+
         output << "La isla ganadora fue el proceso [" << global_min.rank << "] de " << size << "\n";
         output << "Coordenadas del optimo global:\n";
         for (int d = 0; d < dimensions; d++)
@@ -220,6 +243,16 @@ int main(int argc, char **argv)
         }
         output << "Valor de la funcion = " << std::setprecision(10) << global_min.val << "\n";
         output << "Tiempo de ejecución: " << runtime.count() << "\n";
+
+        std::string t("times/");
+        std::stringstream ss("");
+        ss << size;
+        t += ss.str();
+        t += "p/";
+        t += std::string(argv[2]);
+        std::ofstream time(t, std::ios_base::app);
+
+        time << runtime.count() << "\n";
     }
 
     MPI_Finalize();
