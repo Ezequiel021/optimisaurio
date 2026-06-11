@@ -1,22 +1,35 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <cstdlib>
+#include <fstream>
 #include <functional>
 #include <iomanip>
-#include <chrono>
-#include <fstream>
 #include <iostream>
 #include <mpi.h>
 #include <random>
+#include <utility>
 #include <vector>
 
-// Función a minimizar: Función sinoidal
+// Datos experimentales
+std::vector<std::pair<double, double>> data;
+
+inline double voltage(const std::vector<double> &x, double i)
+{
+    return x[0] - x[1] * log(i) - x[2] * i + x[3] * log(1 - x[4] * i);
+}
+
+// Función a minimizar: MAE
 inline double function(const std::vector<double> &x)
 {
-    double sinx = sin(5.0 * x[0]);
-    sinx *= sinx;
-    double siny = sin(5.0 * x[1]);
-    siny *= siny;
-    return x[0]*x[0] + x[1]*x[1] + 3 * sqrt(sinx + siny) + 0.1;
+    const int m = data.size();
+    std::vector<double> v(m);
+    for (int i = 0; i < m; i++)
+    {
+        v[i] = std::abs(data[i].second - voltage(x, data[i].first));
+    }
+    std::sort(v.begin(), v.end());
+    return m % 2 == 0 ? (v[m / 2] + v[m / 2 - 1]) / 2.0 : v[m / 2];
 }
 
 // Estructura auxiliar para ordenar la población por fitness
@@ -163,13 +176,56 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
+    // Leer de datos_358.txt
+    // Variables auxiliares para el Broadcast
+    int num_datos = 0;
+    std::vector<double> flat_vfc;
+
+    if (rank == 0)
+    {
+        std::ifstream data("datos_358.txt");
+        if (!data.is_open())
+        {
+            std::cerr << "Error al abrir el archivo en el rank 0.\n";
+            MPI_Abort(MPI_COMM_WORLD, -1);
+        }
+
+        double dat_i, dat_vi;
+        while (data >> dat_i >> dat_vi)
+        {
+            data.push_back({dat_i, dat_vi});
+            flat_vfc.push_back(dat_i);
+            flat_vfc.push_back(dat_vi);
+        }
+        num_datos = data.size();
+    }
+
+    MPI_Bcast(&num_datos, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    if (rank != 0)
+    {
+        flat_vfc.resize(num_datos * 2);
+    }
+
+    MPI_Bcast(flat_vfc.data(), num_datos * 2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    if (rank != 0)
+    {
+        for (int i = 0; i < num_datos; i++)
+        {
+            data.push_back({flat_vfc[i * 2], flat_vfc[i * 2 + 1]});
+        }
+    }
+
     int generation;
-    const int dimensions = 2;
+    const int dimensions = 5;
 
     std::vector<std::pair<double, double>> bounds(dimensions);
-    bounds[0] = {-2.0, 2.0};
-    bounds[1] = {-2.0, 2.0};
-
+    bounds[0] = {0.0, 0.5};
+    bounds[1] = {0.0, 0.2};
+    bounds[2] = {0.0, 1.0};
+    bounds[3] = {0.0, 1.14};
+    bounds[4] = {0.0, 29.5};
 
     std::vector<int> parameters(6);
     if (rank == 0)
@@ -191,7 +247,8 @@ int main(int argc, char **argv)
         parameters[0] /= size;
     }
 
-    MPI_Bcast(parameters.data(), 6, MPI_INT, 0, MPI_COMM_WORLD);    
+    MPI_Bcast(parameters.data(), 6, MPI_INT, 0, MPI_COMM_WORLD);
+
     std::vector<double> local_best_solution;
 
     // ====== EJECUCIÓN ======
@@ -229,6 +286,9 @@ int main(int argc, char **argv)
         }
         output << "Valor de la funcion = " << std::setprecision(10) << global_min.val << "\n";
         output << "Tiempo de ejecución: " << runtime.count() << "\n";
+
+        // para pegar en R: x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
+        output << global_best_solution[0] << " - " << global_best_solution[1] << " * log(i) - " << global_best_solution[2] << " * i + " << global_best_solution[3] << " * log(1 - " << global_best_solution[4] << " * i)";
     }
 
     MPI_Finalize();
