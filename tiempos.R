@@ -99,10 +99,10 @@ sinoidal1p <- runtime_table$tsinoidal[1]
 rosenbrock1p <- runtime_table$trosenbrock[1]
 michaelwicz1p <- runtime_table$tmichaelwicz[1]
 
-camel_su <- camel1p / runtime_table$tcamel
-sinoidal_su <- sinoidal1p / runtime_table$tsinoidal
-rosenbrock_su <- rosenbrock1p / runtime_table$trosenbrock
-michaelwicz_su <- michaelwicz1p / runtime_table$tmichaelwicz
+camel_ef <- camel1p / runtime_table$tcamel
+sinoidal_ef <- sinoidal1p / runtime_table$tsinoidal
+rosenbrock_ef <- rosenbrock1p / runtime_table$trosenbrock
+michaelwicz_ef <- michaelwicz1p / runtime_table$tmichaelwicz
 
 plot(x = cores,
      y = camel_su,
@@ -131,6 +131,39 @@ lines(x = cores,
       )
 lines(x = cores, 
       y = michaelwicz_su,
+      type = "l",
+      col = "orange")
+grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted")
+
+camel_ef = camel_ef / cores
+sinoidal_ef = sinoidal_ef / cores
+rosenbrock_ef = rosenbrock_ef / cores
+michaelwicz_ef = michaelwicz_ef / cores
+
+plot(x = cores,
+     y = camel_ef,
+     type = "l",
+     col = "red",
+     ylim = c(0.5, 1.5),
+     ylab = "Eficiencia",
+     xlab = "Hilos",
+     main = "Eficiencia"
+)
+
+
+lines(x = cores,
+      y = sinoidal_ef,
+      type = "l",
+      col = "blue"
+)
+
+lines(x = cores,
+      y = rosenbrock_ef,
+      type = "l",
+      col = "green"
+)
+lines(x = cores, 
+      y = michaelwicz_ef,
       type = "l",
       col = "orange")
 grid(nx = NULL, ny = NULL, col = "lightgray", lty = "dotted")

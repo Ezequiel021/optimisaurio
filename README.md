@@ -7,6 +7,8 @@ Universidad de Guanajuato - Departamento de Matemáticas
 ## Descripción
 El programa utiliza un algoritmo genético para optimizar funciones $\mathbb{R}^n \to \mathbb{R}$ y paralelización a través del método de islas.
 
+![Laboratorio de Jurassic Park](images/lab.png)
+
 ## Algoritmo Genético
 El algoritmo genético es un método estocástico para optimizar funciones que imita la Teoría Darwiniana de la evolución.
 
@@ -25,6 +27,8 @@ donde $c(u,v)$ es la nueva potencial solucion, $u,v$ son soluciones seleccionada
 
 ### Método de islas
 El método de islas consiste en ejecutar el algoritmo genético en distintos hilos en paralelo, separando las generaciones en épocas (epoch). Al final de cada época, se eligen los mejores individuos de cada isla para "migrar" a las otras islas (efectivamente retransmitiendo su información a los otros hilos). 
+
+![Islas de Jurassic Park](images/islas.png)
 
 #### Ventajas
 - Escalabilidad: la escalabilidad del programa es trivial, ya que al agregar un hilo o "isla" más, se mejora directamente la probabilidad de incrementar la precisión de la aproximación.
@@ -113,10 +117,13 @@ Tiempo de ejecución: 326
 |Verde | Rosenbrock |
 |Naranja | Michaelwicz|
 
-![Gráfico de errores del voltaje](images/tiempos.png)
+![Tiempos de ejecución ms](images/tiempos.png)
 
 ### Speedup relativo
-![Gráfico de errores del voltaje](images/speedup.png)
+![Speedup relativo](images/speedup.png)
+
+### Eficiencia
+![Eficiencia](images/eficiencia.png)
 
 
 ### Función de error
