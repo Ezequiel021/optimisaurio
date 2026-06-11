@@ -40,21 +40,20 @@ struct Individual
 
 template <typename Comparator>
 int optimize_island(int &solution_generation, std::vector<double> &solution, int dimensions,
-                    const std::vector<std::pair<double, double>> &bounds, // NUEVO: Límites por dimensión
-                    int rank, int num_procs, Comparator comp)
+                    const std::vector<std::pair<double, double>> &bounds, int rank, int num_procs, Comparator comp, std::vector<int> &arguments)
 {
     std::random_device rd;
     std::mt19937 rng(rd() + rank);
 
-    const int population = 100;
-    const int epochs = 50;
-    const int generations_per_epoch = 300;
-    const int mutation_chance = 2;
-    const int tournament_size = 3;
-    const int num_migrants = 5;
+    const int population            = arguments[0];
+    const int epochs                = arguments[1];
+    const int generations_per_epoch = arguments[2];
+    const int mutation_chance_1_in  = arguments[3];
+    const int tournament_size       = arguments[4];
+    const int num_migrants          = arguments[5];
 
     std::uniform_int_distribution<int> uniform_crossovers(0, population - 1);
-    std::uniform_int_distribution<int> uniform_mutation(1, mutation_chance);
+    std::uniform_int_distribution<int> uniform_mutation(1, mutation_chance_1_in);
     std::normal_distribution<double> normal_mutation(0, 0.1);
     std::uniform_real_distribution<double> uniform_01(0.0, 1.0);
 
@@ -226,9 +225,31 @@ int main(int argc, char **argv)
     bounds[3] = {0.0, 1.14};
     bounds[4] = {0.0, 29.5};
 
+    std::vector<int> parameters(6);
+    if (rank == 0)
+    {
+        std::ifstream param("parameters.cfg");
+        if (! param.is_open())
+        {
+            std::cerr << "Fallo al abrir el archivo 'parameters.cfg'";
+            MPI_Abort(MPI_COMM_WORLD, -1);
+        }
+
+        std::string dummy;
+        for (int i = 0; i < 6; i++)
+        {
+            param >> dummy >> parameters[i];
+        }
+
+        // Distribuir la población total equitativamente entre las islas
+        parameters[0] /= size;
+    }
+
+    MPI_Bcast(parameters.data(), 6, MPI_INT, 0, MPI_COMM_WORLD);
+
     std::vector<double> local_best_solution;
 
-    optimize_island(generation, local_best_solution, dimensions, bounds, rank, size, std::less<double>());
+    optimize_island(generation, local_best_solution, dimensions, bounds, rank, size, std::less<double>(), parameters);
 
     struct
     {
