@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -15,7 +16,7 @@ std::vector<std::pair<double, double>> vfc;
 
 inline double voltage(const std::vector<double> &x, double i)
 {
-    return x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
+    return x[0] - x[1] * log(i) - x[2] * i + x[3] * log(1 - x[4] * i);
 }
 
 // Función a minimizar: MAE
@@ -40,21 +41,20 @@ struct Individual
 
 template <typename Comparator>
 int optimize_island(int &solution_generation, std::vector<double> &solution, int dimensions,
-                    const std::vector<std::pair<double, double>> &bounds, // NUEVO: Límites por dimensión
-                    int rank, int num_procs, Comparator comp)
+                    const std::vector<std::pair<double, double>> &bounds, int rank, int num_procs, Comparator comp, std::vector<int> &arguments)
 {
     std::random_device rd;
     std::mt19937 rng(rd() + rank);
 
-    const int population = 100;
-    const int epochs = 50;
-    const int generations_per_epoch = 300;
-    const int mutation_chance = 2;
-    const int tournament_size = 3;
-    const int num_migrants = 5;
+    const int population            = arguments[0];
+    const int epochs                = arguments[1];
+    const int generations_per_epoch = arguments[2];
+    const int mutation_chance_1_in  = arguments[3];
+    const int tournament_size       = arguments[4];
+    const int num_migrants          = arguments[5];
 
     std::uniform_int_distribution<int> uniform_crossovers(0, population - 1);
-    std::uniform_int_distribution<int> uniform_mutation(1, mutation_chance);
+    std::uniform_int_distribution<int> uniform_mutation(1, mutation_chance_1_in);
     std::normal_distribution<double> normal_mutation(0, 0.1);
     std::uniform_real_distribution<double> uniform_01(0.0, 1.0);
 
@@ -169,6 +169,7 @@ int optimize_island(int &solution_generation, std::vector<double> &solution, int
 
 int main(int argc, char **argv)
 {
+    // ====== SETUP ======
     MPI_Init(&argc, &argv);
 
     int rank, size;
@@ -226,9 +227,33 @@ int main(int argc, char **argv)
     bounds[3] = {0.0, 1.14};
     bounds[4] = {0.0, 29.5};
 
+    std::vector<int> parameters(6);
+    if (rank == 0)
+    {
+        std::ifstream param("parameters.cfg");
+        if (! param.is_open())
+        {
+            std::cerr << "Fallo al abrir el archivo 'parameters.cfg'";
+            MPI_Abort(MPI_COMM_WORLD, -1);
+        }
+
+        std::string dummy;
+        for (int i = 0; i < 6; i++)
+        {
+            param >> dummy >> parameters[i];
+        }
+
+        // Distribuir la población total equitativamente entre las islas
+        parameters[0] /= size;
+    }
+
+    MPI_Bcast(parameters.data(), 6, MPI_INT, 0, MPI_COMM_WORLD);
+
     std::vector<double> local_best_solution;
 
-    optimize_island(generation, local_best_solution, dimensions, bounds, rank, size, std::less<double>());
+    // ====== EJECUCIÓN ======
+    auto start = std::chrono::high_resolution_clock::now();
+    optimize_island(generation, local_best_solution, dimensions, bounds, rank, size, std::less<double>(), parameters);
 
     struct
     {
@@ -244,17 +269,26 @@ int main(int argc, char **argv)
     std::vector<double> global_best_solution = local_best_solution;
     MPI_Bcast(global_best_solution.data(), dimensions, MPI_DOUBLE, global_min.rank, MPI_COMM_WORLD);
 
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    // ======= SALIDA =======
     if (rank == 0)
     {
+        auto runtime = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        
         std::ofstream output("out.log");
         output << "La isla ganadora fue el proceso [" << global_min.rank << "] de " << size << "\n";
         output << "Coordenadas del optimo global:\n";
         for (int d = 0; d < dimensions; d++)
         {
             output << "x[" << d << "] = " << std::setprecision(6) << global_best_solution[d] << " (Límites: ["
-                      << bounds[d].first << ", " << bounds[d].second << "])\n";
+                   << bounds[d].first << ", " << bounds[d].second << "])\n";
         }
-        output << "Valor de la funcion (Fitness global) = " << std::setprecision(10) << global_min.val << "\n";
+        output << "Valor de la funcion = " << std::setprecision(10) << global_min.val << "\n";
+        output << "Tiempo de ejecución: " << runtime.count() << "\n";
+
+        // para pegar en R: x[0] - x[1] * log10(i) - x[2] * i + x[3] * log(1 - x[4] * i);
+        output << global_best_solution[0] << " - " << global_best_solution[1] << " * log(i) - " << global_best_solution[2] << " * i + " << global_best_solution[3] << " * log(1 - " << global_best_solution[4] << " * i)";
     }
 
     MPI_Finalize();
