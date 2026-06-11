@@ -1,15 +1,8 @@
-#include <algorithm>
 #include <cmath>
 #include <cstdlib>
-#include <fstream>
-#include <functional>
-#include <iomanip>
-#include <iostream>
 #include <mpi.h>
-#include <random>
 #include <utility>
 #include <vector>
-#include <chrono>
 #include "objective5d.h"
 
 // Datos experimentales

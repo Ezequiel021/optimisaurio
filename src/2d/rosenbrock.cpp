@@ -1,10 +1,4 @@
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <iomanip>
-#include <iostream>
 #include <mpi.h>
-#include <random>
 #include <vector>
 
 // Función a minimizar: Función Rosenbrock

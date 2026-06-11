@@ -1,11 +1,5 @@
-#include <algorithm>
 #include <cmath>
-#include <functional>
-#include <iomanip>
-#include <iostream>
 #include <mpi.h>
-#include <random>
-#include <utility>
 #include <vector>
 
 #include "objective2d.h"
