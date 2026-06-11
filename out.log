@@ -1,8 +1,9 @@
-La isla ganadora fue el proceso [2] de 4
+La isla ganadora fue el proceso [0] de 1
 Coordenadas del optimo global:
-x[0] = 0.474082 (Límites: [0, 0.5])
-x[1] = 0.0989675 (Límites: [0, 0.2])
-x[2] = 0.516039 (Límites: [0, 1])
-x[3] = 0.164841 (Límites: [0, 1.14])
-x[4] = 24.856 (Límites: [0, 29.5])
-Valor de la funcion (Fitness global) = 0.02315950394
+x[0] = 0.413443 (Límites: [0, 0.5])
+x[1] = 0.131911 (Límites: [0, 0.2])
+x[2] = 0.0277997 (Límites: [0, 1])
+x[3] = 0.15263 (Límites: [0, 1.14])
+x[4] = 28.1161 (Límites: [0, 29.5])
+Valor de la funcion = 0.01989394099
+Tiempo de ejecución: 29520

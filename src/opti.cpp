@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
@@ -7,6 +8,7 @@
 #include <iostream>
 #include <mpi.h>
 #include <random>
+#include <ratio>
 #include <utility>
 #include <vector>
 
@@ -168,6 +170,7 @@ int optimize_island(int &solution_generation, std::vector<double> &solution, int
 
 int main(int argc, char **argv)
 {
+    // ====== SETUP ======
     MPI_Init(&argc, &argv);
 
     int rank, size;
@@ -249,6 +252,8 @@ int main(int argc, char **argv)
 
     std::vector<double> local_best_solution;
 
+    // ====== EJECUCIÓN ======
+    auto start = std::chrono::high_resolution_clock::now();
     optimize_island(generation, local_best_solution, dimensions, bounds, rank, size, std::less<double>(), parameters);
 
     struct
@@ -265,17 +270,23 @@ int main(int argc, char **argv)
     std::vector<double> global_best_solution = local_best_solution;
     MPI_Bcast(global_best_solution.data(), dimensions, MPI_DOUBLE, global_min.rank, MPI_COMM_WORLD);
 
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    // ======= SALIDA =======
     if (rank == 0)
     {
+        auto runtime = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+        
         std::ofstream output("out.log");
         output << "La isla ganadora fue el proceso [" << global_min.rank << "] de " << size << "\n";
         output << "Coordenadas del optimo global:\n";
         for (int d = 0; d < dimensions; d++)
         {
             output << "x[" << d << "] = " << std::setprecision(6) << global_best_solution[d] << " (Límites: ["
-                      << bounds[d].first << ", " << bounds[d].second << "])\n";
+                   << bounds[d].first << ", " << bounds[d].second << "])\n";
         }
-        output << "Valor de la funcion (Fitness global) = " << std::setprecision(10) << global_min.val << "\n";
+        output << "Valor de la funcion = " << std::setprecision(10) << global_min.val << "\n";
+        output << "Tiempo de ejecución: " << runtime.count() << "\n";
     }
 
     MPI_Finalize();
